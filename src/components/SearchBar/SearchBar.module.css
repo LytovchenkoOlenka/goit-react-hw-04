@@ -2,7 +2,7 @@
   display: flex;
   justify-content: center;
   padding: 4px 0px;
-  background-color: rgb(94, 94, 255);
+  background-color: rgb(60, 60, 212);
 }
 
 .form {
@@ -18,11 +18,23 @@
   border: none;
   outline: none;
   padding: 8px 16px;
+  transition: background-color 0.5s;
+}
+
+.input:hover {
+  background-color: rgb(172, 172, 255);
 }
 
 .button {
   border-radius: 4px;
   border: none;
-  padding: 8px;
-  cursor: pointer;
+  color: black;
+  padding: 8px 16px;
+  background-color: white;
+
+  transition: background-color 0.5s;
+}
+
+.button:hover {
+  background-color: rgb(172, 172, 255);
 }
