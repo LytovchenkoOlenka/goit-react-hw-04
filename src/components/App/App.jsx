@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 // import LoadMorebutton from "../LoadMoreBtn/LoadMoreBtn";
-// import SearchBar from "../SearchBar/SearchBar";
+import SearchBar from "../SearchBar/SearchBar";
 import ImageGallery from "../ImageGallery/ImageGallery";
 // import Loader from "../Loader/Loader";
 // import ErrorMassage from "../ErrorMassage/ErrorMassage";
@@ -9,27 +9,44 @@ import ImageGallery from "../ImageGallery/ImageGallery";
 import { fetchImages } from "../../images-api";
 
 export default function App() {
-  const [images, setimages] = useState([]);
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(false);
+  // const [query, setQuery] = useState("");
 
-  useEffect(() => {
-    async function getPictures() {
-      const data = await fetchImages();
-      console.log(data);
-      setimages(data);
+  // useEffect(() => {
+  //   async function getPictures() {}
+  //   getPictures();
+  // }, []);
+
+  const handleSearch = async (newQuery) => {
+    try {
+      // setQuery(newQuery);
+      console.log(newQuery);
+      setIsLoading(true);
+      const data = await fetchImages(newQuery);
+      setImages(data);
+    } catch (error) {
+      console.log(newQuery);
+      setError(true);
+    } finally {
+      setIsLoading(false);
     }
-    getPictures();
-  }, []);
+  };
 
   return (
     <div>
-      <ImageGallery images={images} />
+      <SearchBar onSubmit={handleSearch} />
+      {isLoading && <p>Loading</p>}
+      {error && <p>Error</p>}
+      {images.length > 0 && <ImageGallery images={images} />}
     </div>
   );
 }
 
-//     <SearchBar />
-//     <Loader />
-//     <ErrorMassage />
+//      <Loader />
+// <ErrorMassage />
+
 //         <ImageGallery images={images} />
 //  <LoadMorebutton />
 //     <ImageModal />
