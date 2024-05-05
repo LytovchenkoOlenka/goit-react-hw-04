@@ -3,6 +3,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+  margin-left: 32px;
+  margin-right: 32px;
 }
 
 .item {

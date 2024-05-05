@@ -1,13 +1,15 @@
 import css from "./App.module.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import LoadMorebutton from "../LoadMoreBtn/LoadMoreBtn";
 import SearchBar from "../SearchBar/SearchBar";
 import ImageGallery from "../ImageGallery/ImageGallery";
 import Loader from "../Loader/Loader";
 import ErrorMassage from "../ErrorMassage/ErrorMassage";
+import ScrollButton from "../ScrollButton/ScrollButton";
 import ImageModal from "../ImageModal/ImageModal";
 
 import { fetchImages } from "../../images-api";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function App() {
   const [images, setImages] = useState([]);
@@ -19,6 +21,9 @@ export default function App() {
 
   const [modalIsOpen, setIsOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [showButton, setShowButton] = useState(false);
+
+  const buttonRef = useRef(null);
 
   const handleSearch = (newQuery) => {
     setQuery(newQuery);
@@ -36,10 +41,13 @@ export default function App() {
         setError(false);
         setIsLoading(true);
         const data = await fetchImages(query, page);
-        // console.log(page);
-        setImages((prevArticles) => {
-          return [...prevArticles, ...data];
-        });
+        if (data.length === 0) {
+          toast.error("No images!");
+        } else {
+          setImages((prevArticles) => {
+            return [...prevArticles, ...data];
+          });
+        }
       } catch (error) {
         setError(true);
       } finally {
@@ -53,22 +61,6 @@ export default function App() {
     setPage(page + 1);
   };
 
-  // const loadMoreButtonRef = useRef(null);
-
-  // useEffect(() => {
-  //   if (images.length <= 12) {
-  //     return;
-  //   }
-  //   if (loadMoreButtonRef.current) {
-  //     const loadMoreButtonRect =
-  //       loadMoreButtonRef.current.getBoundingClientRect();
-  //     window.scrollTo({
-  //       top: window.scrollY + loadMoreButtonRect.top,
-  //       behavior: "smooth",
-  //     });
-  //   }
-  // }, [images]);
-
   const openModal = (image) => {
     setSelectedImage(image);
     setIsOpen(true);
@@ -78,22 +70,52 @@ export default function App() {
     setIsOpen(false);
   };
 
+  useEffect(() => {
+    if (images.length <= 12) {
+      return;
+    }
+    if (buttonRef.current) {
+      const loadMoreScroll = buttonRef.current.getBoundingClientRect();
+      window.scrollTo({
+        top: window.scrollY + loadMoreScroll.top,
+        behavior: "smooth",
+      });
+    }
+  }, [images]);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+
+  const handleScroll = () => {
+    const scrolled = window.scrollY;
+    setShowButton(scrolled > 0);
+  };
+
+  useEffect(() => {
+    window.onscroll = handleScroll;
+    return () => (window.onscroll = null);
+  }, []);
+
   return (
     <div className={css.container}>
       <SearchBar onSubmit={handleSearch} />
       {error && <ErrorMassage />}
-      {images.length > 0 && <ImageGallery images={images} />}
+      {images.length > 0 && <ImageGallery onOpen={openModal} images={images} />}
       {isLoading && <Loader />}
       {images.length > 0 && !isLoading && (
-        <LoadMorebutton loadMore={handleLoadMore} />
+        <LoadMorebutton loadMore={handleLoadMore} onRef={buttonRef} />
       )}
-      {modalIsOpen && (
-        <ImageModal
-          isOpen={openModal}
-          onRequestClose={closeModal}
-          selectedImage={selectedImage}
-        />
-      )}
+      <ImageModal
+        openModal={modalIsOpen}
+        onClose={closeModal}
+        selectedImage={selectedImage}
+      />
+      <Toaster position="top-right" reverseOrder={false} />
+      {showButton && <ScrollButton scrollToTop={scrollToTop} />}
     </div>
   );
 }
